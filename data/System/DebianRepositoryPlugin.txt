@@ -1,0 +1,120 @@
+---+!! !DebianRepositoryPlugin
+<!--
+One line description, required for extensions repository catalog.
+BuildContrib will fill in the SHORTDESCRIPTION with the value of
+$SHORTDESCRIPTION from the .pm module, or you can redefine it here if you
+prefer.
+   * Set SHORTDESCRIPTION = %$SHORTDESCRIPTION%
+-->
+
+<img style="float:right" src="%ATTACHURL%/logo-colivre.png" />
+
+%SHORTDESCRIPTION%
+
+%TOC%
+
+---++ Usage
+
+Just attach =.deb= files to your topics, and you will get valid Debian
+repositories for them at =%<nop/>PUBURL%/TheWeb/debian=.
+
+You will get one repository per web.
+
+If you put valid !GnuPG data in the right place on your filesystem, then the
+repositories will be signed with !GnuPG, and the public key used to sign the
+repository is exported at =%<nop/>PUBURL%/TheWeb/debian/signing-key.asc=
+
+To advertise your repository for others to use, you can use the following
+template:
+
+<verbatim>
+To install packages from this repository, add the following line to your
+=/etc/apt/sources.list= file:
+
+<code>
+deb %PUBURL%/%WEB%/debian ./
+</code>
+
+Then import the signing key by running the following command:
+
+<code>
+$ curl %PUBURL%/%WEB%/debian/signing-key.asc  | sudo apt-key add -
+</code>
+
+Then update your package lists with the following command:
+
+<code>
+$ sudo apt-get update
+</code>
+
+And then install PACKAGE:
+
+<code>
+$ sudo apt-get install PACKAGE
+</code>
+</verbatim>
+
+---+++ Restricting which packages go into the repository
+
+If you want a fine-grained control of which packages go into your web's Debian
+repository, you can define the =DEBIAN_REPOSITORY_TOPICS= setting in your web's
+WebPreferences topic to a *space separated list of topic names*, like this:
+
+<verbatim>
+   * Set DEBIAN_REPOSITORY_TOPICS = Topic1 Topic2
+</verbatim>
+
+In that case, %TOPIC% will scan only Topic1's and Topic2' attachment
+directories looking for .deb files to include in the repository.
+
+You can gain even more control of what goes into your repository by restricting
+the write access to Topic1 and Topic2 using
+[[System.AccessControl][Foswiki's access control capabilities]].
+
+---++ Installation Instructions
+
+%$INSTALL_INSTRUCTIONS%
+
+This plugin requires the apt-ftparchive program to work. This program is part
+of the apt-utils packages, and should already be installed in all systems
+running Debian GNU/Linux (or derivatives). If for some reason it is not
+installed already, then you must install it to make this plugin work for you.
+
+To enable !GnuPG signatures in the generated Debian repositories, you must put
+a 'gnupg' directory in the same level as your 'pub' directory
+(=$Foswiki::cfg{PubDir}=), containing a valid !GnuPG home directory. You can
+generate one by issuing the following commands:
+
+<verbatim>
+mkdir /path/to/foswiki/gnupg
+gpg --homedir /path/to/foswiki/gnupg --gen-key
+chown -R www-data:www-data /path/to/foswiki/gnupg
+chmod -R go-rwx /path/to/foswiki/gnupg
+</verbatim>
+
+The above commands assume that:
+
+   * =/path/to/foswiki/gnupg= is at the same level as your pub directory. If
+     you are using
+     [[Foswiki:Extensions/VirtualHostingContrib][VirtualHostingContrib]], you
+     can have a per-virtualhost !GnuPG directory at
+     =/path/to/foswiki/virtualhost/$VIRTUALHOST/gnupg=.
+   * Your web server runs under user =www-data= and group =www-data=, which is
+     the case in Debian GNU/Linux. If your system uses other user/group
+     combination, please adjust accordingly
+
+---++ Info
+
+Many thanks to [[http://colivre.coop.br][Colivre]] for supporting this work.
+
+|  Author(s): | [[Foswiki:Main/AntonioTerceiro][Antonio Terceiro]] |
+|  Copyright: | &copy; 2011 Antonio Terceiro (http://colivre.coop.br/) |
+|  License: | [[http://www.gnu.org/licenses/gpl.html][GPL (Gnu General Public License)]] version 2+ |
+|  Release: | %$RELEASE% |
+|  Version: | %$VERSION% |
+|  Change History: | <!-- versions below in reverse order -->&nbsp; |
+|  Dependencies: | %$DEPENDENCIES% |
+|  Home page: | http://foswiki.org/bin/view/Extensions/DebianRepositoryPlugin |
+|  Support: | http://foswiki.org/bin/view/Support/DebianRepositoryPlugin |
+
+<!-- Do _not_ attempt to edit this topic; it is auto-generated. -->

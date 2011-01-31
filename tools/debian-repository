@@ -1,0 +1,95 @@
+#!/bin/sh
+
+set -e
+
+# source layout:
+#   pub/
+#   pub/Web/Topic
+#   pub/Web/Topic/package_0.1.0_all.deb
+#   gnupg/
+# destination layout:
+#   pub/Web/debian/
+#   pub/Web/debian/Packages.bz2
+#   pub/Web/debian/Release.gpg
+#   pub/Web/debian/Release
+#   pub/Web/debian/signing-key.asc
+#   pub/Web/debian/Packages.gz
+#   pub/Web/debian/Packages
+
+if [ "$1" = '--check-dependencies' ]; then
+  needed_programs='apt-ftparchive'
+  missing_deps=false
+  for program in $needed_programs; do
+    if ! which "$program" > /dev/null; then
+      echo "$program missing"
+      missing_deps=true
+    fi
+  done
+  if [ "$missing_deps" = 'true' ]; then
+    exit 1
+  else
+    exit 0
+  fi
+fi
+
+webpubdir="$1"
+if [ -z "$webpubdir" ]; then
+  echo "usage: $0 WEB-DIRECTORY [TOPIC [TOPIC] ...]"
+  echo "       $0 --check-dependencies"
+  exit 1
+fi
+shift
+
+topics="$@"
+
+repodir="$webpubdir/debian"
+mkdir -p "$repodir"
+
+gnupg_data_dir="$webpubdir/../../gnupg"
+
+has_gnupg=false
+if [ -e "$gnupg_data_dir" ] && which gpg > /dev/null ; then
+  gnupg_data_dir="$(readlink -f $gnupg_data_dir)"
+  has_gnupg=true
+else
+  echo "W: $gnupg_data_dir does not exist. Your repository will not be GPG-signed"
+fi
+
+gnupg_sign() {
+  if [ "$has_gnupg" = 'true' ]; then
+    rm -f "$1".gpg
+    gpg --homedir "$gnupg_data_dir" -abs -o "$1".gpg "$1"
+  fi
+}
+
+gnupg_publish_signing_key() {
+  if [ "$has_gnupg" = 'true' ]; then
+    gpg --homedir "$gnupg_data_dir" --armor --export-options export-minimal --export > signing-key.asc
+  fi
+}
+
+cd "$repodir" && (
+
+  if [ -z "$topics" ]; then
+    topics="$(ls -1 ..)"
+  fi
+
+  # Packages files
+  rm -f Packages
+  touch Packages
+  for topic in $topics; do
+    topic_folder="../$topic"
+    if [ -e "$topic_folder" ]; then
+      apt-ftparchive packages "$topic_folder" >> Packages
+    fi
+  done
+
+  cat Packages | gzip > Packages.gz
+  cat Packages | bzip2 > Packages.bz2
+
+  # Release file
+  apt-ftparchive release . > Release
+
+  gnupg_sign Release
+  gnupg_publish_signing_key
+)

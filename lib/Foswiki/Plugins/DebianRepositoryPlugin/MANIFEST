@@ -1,0 +1,5 @@
+# Release manifest for DebianRepositoryPlugin
+data/System/DebianRepositoryPlugin.txt 0644 Documentation
+lib/Foswiki/Plugins/DebianRepositoryPlugin.pm 0644 Perl module
+tools/debian-repository 0755 Auxiliary tool
+pub/System/DebianRepositoryPlugin/logo-colivre.png 0644 Sponsor logo

@@ -1,0 +1,3 @@
+* add support for source packages
+* add a REST handler to force regenerating the repository
+* automatically create Debian packages from attachments that match *Plugin.tgz and look like a Foswiki plugin
