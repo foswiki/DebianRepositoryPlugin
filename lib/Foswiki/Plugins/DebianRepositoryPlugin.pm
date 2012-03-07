@@ -27,7 +27,7 @@ require Foswiki::Plugins; # For the API version
 require Foswiki::Sandbox; # for running external commands
 
 our $VERSION = '$Rev: 7889 $'; # must be like this because of a Foswiki restriction
-our $RELEASE = '0.1.0';
+our $RELEASE = '0.2.0';
 our $SHORTDESCRIPTION = 'automatically creates a Debian repository listing .deb attachments';
 our $NO_PREFS_IN_TOPIC = 1;
 
@@ -69,10 +69,11 @@ sub afterAttachmentSaveHandler {
    my $filename = $attrHashRef->{attachment};
    if ($filename =~ /\.deb$/) {
       my $webPubDir = $Foswiki::cfg{PubDir} . '/' . $web;
-      my $topics = Foswiki::Func::getPreferencesValue('DEBIAN_REPOSITORY_TOPICS', $web);
+      my $repoName = Foswiki::Func::getPreferencesValue('DEBIAN_REPOSITORY_NAME', $web) || 'debian';
+      my $topics = Foswiki::Func::getPreferencesValue('DEBIAN_REPOSITORY_TOPICS', $web) || '';
       my @topics = grep { $_ =~ m/$Foswiki::regex{webNameRegex}/ } split(/\s+/, $topics);
-      my $command = "$debian_repository_tool %DIRECTORY|F%" . (join(' ', map { ' ' . $_ } @topics));
-      Foswiki::Sandbox->sysCommand($command, DIRECTORY => $webPubDir);
+      my $command = "$debian_repository_tool %DIRECTORY|F% %REPONAME|S%" . (join(' ', map { ' ' . $_ } @topics));
+      Foswiki::Sandbox->sysCommand($command, DIRECTORY => $webPubDir, REPONAME => $repoName);
    }
 }
 
